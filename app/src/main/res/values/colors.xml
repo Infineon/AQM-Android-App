@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#5EA290</color>
+    <color name="colorPrimaryDark">#5EA290</color>
+    <color name="colorAccent">#928285</color>
+    <color name="background_holo_light">#fff3f3f3</color>
+    <color name="holo_blue_bright">#ff00ddff</color>
+    <color name="holo_red_light">#ffff4444</color>
+    <color name="holo_green_light">#ff99cc00</color>
+    <color name="color1">#9BC3B7</color>
+    <color name="color2">#928285</color>
+    <color name="color3">#AEC067</color>
+    <color name="color4">#AB377A</color>
+</resources>
+<!-- colors 1 to 5 are from Coral Teals v02 from Adobe Color -->

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v4.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/swipeContainer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent">
+
+        <TableLayout
+            android:id="@+id/tableLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TableRow
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0">
+
+                <LinearLayout
+                    android:id="@+id/layoutTop"
+                    android:layout_width="fill_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="2"
+                    android:background="#FFFFFF">
+
+                    <TextView
+                        android:id="@+id/BTstatusText"
+                        android:layout_width="0dp"
+                        android:layout_height="fill_parent"
+                        android:layout_weight="1"
+                        android:text="@string/BTstatusText" />
+
+                    <ImageView
+                        android:id="@+id/saveBtn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="24dp"
+                        android:contentDescription="@string/saveBtn"
+                        android:onClick="saveBtnClicked"
+                        android:src="@drawable/outline_save_black_24"
+                        android:visibility="visible" />
+
+                    <ImageView
+                        android:id="@+id/settingsBtn"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginStart="24dp"
+                        android:contentDescription="@string/settingsBtn"
+                        android:onClick="settingsBtnClicked"
+                        android:src="@drawable/icons8_sync_settings_96"
+                        android:visibility="visible" />
+
+                </LinearLayout>
+
+            </TableRow>
+
+            <TableRow
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:layout_weight="1">
+
+                <com.jjoe64.graphview.GraphView
+                    android:id="@+id/graph"
+                    android:layout_width="wrap_content"
+                    android:layout_height="fill_parent" />
+            </TableRow>
+
+
+        <HorizontalScrollView
+            android:layout_width="fill_parent"
+            android:layout_height="60dp"
+            android:layout_weight="0"
+            app:layout_constraintLeft_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tableLayout">
+
+            <RelativeLayout
+                android:id="@+id/layoutBottom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+            </RelativeLayout>
+        </HorizontalScrollView>
+        </TableLayout>
+    </android.support.constraint.ConstraintLayout>
+</android.support.v4.widget.SwipeRefreshLayout>

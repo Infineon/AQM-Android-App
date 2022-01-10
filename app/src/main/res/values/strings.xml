@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">XENSIV PAS CO2\nSensor Network</string>
+    <string name="version_name">v1.0c</string>
+
+    <string name="pairedDevices">Scan for Devices</string>
+    <string name="BTstatusText">BT: Connecting…</string>
+
+    <string name="Settings">Settings</string>
+    <string name="file_saved">Saving to </string>
+
+    <string name="save">Save</string>
+    <string name="saveBtn">Save Button</string>
+    <string name="settingsBtn">Settings Button</string>
+
+    <string name="urlMCI">https://www.mci.edu/en/</string>
+    <string name="urlInfineon">https://www.infineon.com/</string>
+</resources>
