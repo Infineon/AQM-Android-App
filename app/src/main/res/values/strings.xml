@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">XENSIV PAS CO2\nSensor Network</string>
-    <string name="version_name">v1.0c</string>
+    <string name="version_name">v2.0a</string>
 
     <string name="pairedDevices">Scan for Devices</string>
     <string name="BTstatusText">BT: Connecting…</string>
@@ -8,7 +8,10 @@
     <string name="Settings">Settings</string>
     <string name="file_saved">Saving to </string>
 
-    <string name="save">Save</string>
+    <string name="save">Save Settings</string>
+    <string name="calib_bt_text">Start PAS CO2 Calibration</string>
+    <string name="reset_bt_text">Reset PAS CO2 Calibration</string>
+
     <string name="saveBtn">Save Button</string>
     <string name="settingsBtn">Settings Button</string>
 

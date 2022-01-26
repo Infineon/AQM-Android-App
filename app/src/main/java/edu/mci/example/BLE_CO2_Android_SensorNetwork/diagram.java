@@ -96,11 +96,16 @@ public class diagram extends AppCompatActivity //implements OnItemSelectedListen
 
     private BluetoothManager bluetoothManager;
     private BluetoothAdapter bluetoothAdapter;
-    private BluetoothGatt bluetoothGatt = null;
+    private static BluetoothGatt bluetoothGatt = null;
+
+    public static BluetoothGatt getBT(){
+        return bluetoothGatt;
+    }
 
     private LineGraphSeries<DataPoint> GraphSeries;
     private int DataSetsCount = 0;
 
+    private int Setting_Buffer_Calibration = 0;
     private int Setting_Buffer_SampleRate = 0;
     private int Setting_Buffer_AlarmThreshold = 0;
     private int Setting_Buffer_SolderingCompensation = 0;
@@ -111,32 +116,39 @@ public class diagram extends AppCompatActivity //implements OnItemSelectedListen
     List<Double> Data_Buffer_Hum = new ArrayList<Double>();
     List<Date> Data_Buffer_Calendar = new ArrayList<Date>();
 
-    List<BluetoothGattCharacteristic> Characteristics_WriteQueue = new ArrayList<>();
+    private static List<BluetoothGattCharacteristic> Characteristics_WriteQueue = new ArrayList<>();
     List<BluetoothGattCharacteristic> Characteristics_RequestQueue = new ArrayList<>();
+
+    public static List<BluetoothGattCharacteristic> getWQ(){
+        return Characteristics_WriteQueue;
+    }
 
     private int connectionState = STATE_DISCONNECTED;
     private static final int STATE_DISCONNECTED = 0;
     private static final int STATE_CONNECTING = 1;
     private static final int STATE_CONNECTED = 2;
 
-    UUID CLIENT_CHARACTERISTIC_CONFIG_UUID = convertFromInteger(0x2902);
+    static UUID MEASUREMENTS_SERVICE_UUID = UUID.fromString("2a13dada-295d-f7af-064f-28eac027639f");
+    static UUID CO2_DATA_CHARACTERISTIC_UUID = UUID.fromString("4ef31e63-93b4-eca8-3846-84684719c484");
+    static UUID PRESS_DATA_CHARACTERISTIC_UUID = UUID.fromString("0b4f4b0c-0795-1fab-a44d-ab5297a9d33b");
+    static UUID TEMP_DATA_CHARACTERISTIC_UUID = UUID.fromString("7eb330af-8c43-f0ab-8e41-dc2adb4a3ce4");
+    static UUID HUM_DATA_CHARACTERISTIC_UUID = UUID.fromString("421da449-112f-44b6-4743-5c5a7e9c9a1f");
 
-    UUID MEASUREMENTS_SERVICE_UUID = UUID.fromString("2a13dada-295d-f7af-064f-28eac027639f");
-    UUID CO2_DATA_CHARACTERISTIC_UUID = UUID.fromString("4ef31e63-93b4-eca8-3846-84684719c484");
-    UUID PRESS_DATA_CHARACTERISTIC_UUID = UUID.fromString("0b4f4b0c-0795-1fab-a44d-ab5297a9d33b");
-    UUID TEMP_DATA_CHARACTERISTIC_UUID = UUID.fromString("7eb330af-8c43-f0ab-8e41-dc2adb4a3ce4");
-    UUID HUM_DATA_CHARACTERISTIC_UUID = UUID.fromString("421da449-112f-44b6-4743-5c5a7e9c9a1f");
-
-    UUID SETTINGS_SERVICE_UUID = UUID.fromString("2119458a-f72c-269b-4d4d-2df0319121dd");
-    UUID SAMPLE_RATE_CHARACTERISTIC_UUID = UUID.fromString("8420e6c6-49ba-7c8d-104f-10fe496d061f");
-    UUID ALARM_THRESHOLD_CHARACTERISTIC_UUID = UUID.fromString("4ffb7e99-85ba-de86-4242-004f76f23409");
-    UUID SOLDERING_COMPENSATION_CHARACTERISTIC_UUID = UUID.fromString("6f8afe94-a93d-cfb2-1b47-da0f98d9bfa1");
+    static UUID SETTINGS_SERVICE_UUID = UUID.fromString("2119458a-f72c-269b-4d4d-2df0319121dd");
+    static UUID SAMPLE_RATE_CHARACTERISTIC_UUID = UUID.fromString("8420e6c6-49ba-7c8d-104f-10fe496d061f");
+    static UUID ALARM_THRESHOLD_CHARACTERISTIC_UUID = UUID.fromString("4ffb7e99-85ba-de86-4242-004f76f23409");
+    static UUID SOLDERING_COMPENSATION_CHARACTERISTIC_UUID = UUID.fromString("6f8afe94-a93d-cfb2-1b47-da0f98d9bfa1");
+    static UUID ENABLE_CALIBRATION_CHARACTERISTIC_UUID = UUID.fromString("e64d0510-07f3-ac96-9c4d-5af82839425c");
 
     public UUID convertFromInteger(int i) {
         final long MSB = 0x0000000000001000L;
         final long LSB = 0x800000805f9b34fbL;
         long value = i & 0xFFFFFFFF;
         return new UUID(MSB | (value << 32), LSB);
+    }
+
+    public void requestCharacteristics(BluetoothGatt gatt) {
+        gatt.readCharacteristic(Characteristics_RequestQueue.get(Characteristics_RequestQueue.size() - 1));
     }
 
     public void writeCharacteristics(BluetoothGatt gatt) {
@@ -155,7 +167,7 @@ public class diagram extends AppCompatActivity //implements OnItemSelectedListen
         } else if (Characteristics_WriteQueue.get(Characteristics_WriteQueue.size()-1).getUuid().toString().equalsIgnoreCase(SOLDERING_COMPENSATION_CHARACTERISTIC_UUID.toString())) {      // Soldering Compensation Setting Read
             byte[] SolderingCompensationTest = new byte[4];
             SolderingCompensationTest[0] = (byte) (Setting_Buffer_SolderingCompensation & 0xFF);       // Low Byte
-            SolderingCompensationTest[1] = (byte) (Setting_Buffer_SolderingCompensation >> 8);       // High Byte
+            SolderingCompensationTest[1] = (byte) (Setting_Buffer_SolderingCompensation >> 8);        // High Byte
             SolderingCompensationTest[2] = (byte) (Setting_Buffer_SolderingCompensation >> 16);       // High Byte
             SolderingCompensationTest[3] = (byte) (Setting_Buffer_SolderingCompensation >> 24);       // High Byte
 
@@ -172,12 +184,12 @@ public class diagram extends AppCompatActivity //implements OnItemSelectedListen
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 connectionState = STATE_CONNECTED;
-                Statusview.setText("BT: connected");
+                Statusview.setText("BT: Connected to " + macaddr);
 
                 bluetoothGatt.discoverServices();
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 connectionState = STATE_DISCONNECTED;
-                Statusview.setText("BT: disconnected");
+                Statusview.setText("BT: Disconnected");
             }
         }
 
@@ -206,25 +218,10 @@ public class diagram extends AppCompatActivity //implements OnItemSelectedListen
                             Characteristics_RequestQueue.add(Hum_Characteristic);
                         }
                         catch(Exception e){};
-                    } else if (service.getUuid().toString().equalsIgnoreCase(SETTINGS_SERVICE_UUID.toString())) {      // Settings Service Found
-                        try {
-                            BluetoothGattCharacteristic SampleRate_Characteristic = bluetoothGatt.getService(SETTINGS_SERVICE_UUID).getCharacteristic(SAMPLE_RATE_CHARACTERISTIC_UUID);
-                            BluetoothGattCharacteristic AlarmThreshold_Characteristic = bluetoothGatt.getService(SETTINGS_SERVICE_UUID).getCharacteristic(ALARM_THRESHOLD_CHARACTERISTIC_UUID);
-                            BluetoothGattCharacteristic SolderingCompensation_Characteristic = bluetoothGatt.getService(SETTINGS_SERVICE_UUID).getCharacteristic(SOLDERING_COMPENSATION_CHARACTERISTIC_UUID);
-
-                            Characteristics_RequestQueue.add(SampleRate_Characteristic);
-                            Characteristics_RequestQueue.add(AlarmThreshold_Characteristic);
-                            Characteristics_RequestQueue.add(SolderingCompensation_Characteristic);
-                        }
-                        catch(Exception e){};
                     }
                 }
                 requestCharacteristics(gatt);
             }
-        }
-
-        public void requestCharacteristics(BluetoothGatt gatt) {
-            gatt.readCharacteristic(Characteristics_RequestQueue.get(Characteristics_RequestQueue.size() - 1));
         }
 
         @Override
@@ -338,7 +335,6 @@ public class diagram extends AppCompatActivity //implements OnItemSelectedListen
                     }
                 }
 
-
                 Log.i(TAG, "CurrentSize: " + Characteristics_RequestQueue.size());
                 Characteristics_RequestQueue.remove(Characteristics_RequestQueue.get(Characteristics_RequestQueue.size() - 1));
                 if (Characteristics_RequestQueue.size() > 0)
@@ -351,6 +347,7 @@ public class diagram extends AppCompatActivity //implements OnItemSelectedListen
             super.onCharacteristicWrite(gatt, characteristic, status);
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 Characteristics_WriteQueue.remove(Characteristics_WriteQueue.get(Characteristics_WriteQueue.size() - 1));
+
                 if (Characteristics_WriteQueue.size() > 0)
                     writeCharacteristics(gatt);
             }
@@ -534,9 +531,9 @@ public class diagram extends AppCompatActivity //implements OnItemSelectedListen
         updateColorOfSaveBtn();
 
         if (connectionState == BluetoothProfile.STATE_CONNECTED)
-            Statusview.setText("BT: connected");
+            Statusview.setText("BT: Connected to " + macaddr);
         else if (connectionState == BluetoothProfile.STATE_DISCONNECTED)
-            Statusview.setText("BT: disconnected");
+            Statusview.setText("BT: Disconnected");
     }
 
     //	Is called when the activity should be destroyed.
@@ -912,6 +909,24 @@ public class diagram extends AppCompatActivity //implements OnItemSelectedListen
     public void settingsBtnClicked(View view) {
         Intent intent = new Intent(diagram.this, settings.class);
         // Log.i(TAG, "CurrentSampleRate:  " + Setting_Buffer_SampleRate + "CurrentPressureCompensation:  " + Setting_Buffer_PressureCompensation + "CurrentAlarmThreshold:  " + Setting_Buffer_AlarmThreshold + "CurrentSolderingCompensation:  " + Setting_Buffer_SolderingCompensation);
+        List<BluetoothGattService> services = bluetoothGatt.getServices();
+
+        for (BluetoothGattService service : services) {
+            if (service.getUuid().toString().equalsIgnoreCase(MEASUREMENTS_SERVICE_UUID.toString())) {      // Measurement Service Found
+            try {
+                BluetoothGattCharacteristic SampleRate_Characteristic = bluetoothGatt.getService(SETTINGS_SERVICE_UUID).getCharacteristic(SAMPLE_RATE_CHARACTERISTIC_UUID);
+                BluetoothGattCharacteristic AlarmThreshold_Characteristic = bluetoothGatt.getService(SETTINGS_SERVICE_UUID).getCharacteristic(ALARM_THRESHOLD_CHARACTERISTIC_UUID);
+                BluetoothGattCharacteristic SolderingCompensation_Characteristic = bluetoothGatt.getService(SETTINGS_SERVICE_UUID).getCharacteristic(SOLDERING_COMPENSATION_CHARACTERISTIC_UUID);
+
+                Characteristics_RequestQueue.add(SampleRate_Characteristic);
+                Characteristics_RequestQueue.add(AlarmThreshold_Characteristic);
+                Characteristics_RequestQueue.add(SolderingCompensation_Characteristic);
+            }
+            catch(Exception e){};
+        }
+}
+        requestCharacteristics(bluetoothGatt);
+        while(Characteristics_RequestQueue.size() != 0);
 
         intent.putExtra("CurrentSampleRate", Setting_Buffer_SampleRate / 1000);
         intent.putExtra("CurrentAlarmThreshold", Setting_Buffer_AlarmThreshold);
